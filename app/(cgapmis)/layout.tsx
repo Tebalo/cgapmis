@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  BarChart,
   // BookOpen,
   // Cloud,
   Home,
@@ -81,6 +82,10 @@ function DesktopNav() {
 
         <NavItem href="/home" label="Home">
           <Home className="h-5 w-5" />
+        </NavItem>
+
+        <NavItem href="/monitoring" label="Performance Monitoring">
+          <BarChart className="h-5 w-5" />
         </NavItem>
 
         {/* <NavItem href="/farm" label="Farm">
