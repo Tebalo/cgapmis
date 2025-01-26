@@ -1,6 +1,5 @@
-'use client';
-
-import React from 'react';
+'use client'
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle, X, File } from 'lucide-react';
 
 interface LineItem {
   id: string;
@@ -20,10 +19,13 @@ interface LineItem {
 }
 
 export function IncomeStatementForm() {
-  const [open, setOpen] = React.useState(false);
-  const [revenueItems, setRevenueItems] = React.useState<LineItem[]>([]);
-  const [expenseItems, setExpenseItems] = React.useState<LineItem[]>([]);
-
+  const [open, setOpen] = useState(false);
+  const [revenueItems, setRevenueItems] = useState<LineItem[]>([]);
+  const [expenseItems, setExpenseItems] = useState<LineItem[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [year, setYear] = useState('');
+  const [tax, setTax] = useState('');
+  const [title, setTitle] = useState('');
   const totalRevenue = revenueItems.reduce((sum, item) => sum + (item.amount || 0), 0);
   const totalExpenses = expenseItems.reduce((sum, item) => sum + (item.amount || 0), 0);
 
@@ -66,10 +68,49 @@ export function IncomeStatementForm() {
     setItems(updatedItems);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setOpen(false);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('title', year);
+    formData.append('file', file as File);
+    formData.append('revenue', totalRevenue.toString());
+    formData.append('year', year);
+    formData.append('tax', tax);
+    formData.append('expenses', totalExpenses.toString());
+    // revenueItems.forEach((item, index) => {
+    //   formData.append(`revenue-${index}-description`, item.description);
+    //   formData.append(`revenue-${index}-amount`, item.amount.toString());
+    // });
+    // expenseItems.forEach((item, index) => {
+    //   formData.append(`expense-${index}-description`, item.description);
+    //   formData.append(`expense-${index}-amount`, item.amount.toString());
+    // });
+
+    try {
+      const response = await fetch('http://74.208.205.44:8084/api/documents/', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        console.log('Income statement created successfully');
+        setOpen(false);
+      } else {
+        console.error('Error creating income statement:', await response.json());
+      }
+    } catch (error) {
+      console.error('Error creating income statement:', error);
+    }
+  };
+
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -87,7 +128,12 @@ export function IncomeStatementForm() {
           {/* Company Info */}
           <div>
             <Label>Company Information</Label>
-            <Input placeholder="Company Name" className="mt-2" />
+            <Input 
+              type='text'
+              placeholder="Company Name" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="mt-2" />
             <div className="grid grid-cols-2 gap-4 mt-2">
               <Input type="date" placeholder="Period Start" />
               <Input type="date" placeholder="Period End" />
@@ -186,6 +232,42 @@ export function IncomeStatementForm() {
             </div>
           </div>
 
+          {/* File Upload */}
+          <div>
+            <Label>
+              <File className="h-5 w-5 mr-2" />
+              Upload File
+            </Label>
+            <Input
+              type="file"
+              accept=".pdf"
+              className="mt-2"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {/* Additional Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Year</Label>
+              <Input
+                type="text"
+                placeholder="Enter year"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Tax</Label>
+              <Input
+                type="text"
+                placeholder="Enter tax"
+                value={tax}
+                onChange={(e) => setTax(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div className="border-t pt-4">
             <div className="text-right font-medium">
               Net Income: {(totalRevenue - totalExpenses).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
@@ -196,7 +278,8 @@ export function IncomeStatementForm() {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type="submit"
+            >Submit</Button>
           </div>
         </form>
       </DialogContent>

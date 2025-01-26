@@ -1,3 +1,5 @@
+'use client'
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Download, LineChart, FileText, BellRing } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,44 +19,70 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { IncomeStatementForm } from './income-form';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 
 interface Statement {
   id: string;
-  name: string;
+  title: string;
   type: string;
-  period: string;
+  year: string;
   submissionDate: string;
   status: 'Pending' | 'Approved' | 'Rejected';
+  filePath: string;
+  fileType: string;
+  revenue: string;
+  expenses: string;
+  tax: string;
+  grossProfit: string;
+  netProfit: string;
 }
 
-const sampleStatements: Statement[] = [
-  {
-    id: '1',
-    name: 'Water Utilities Corporation',
-    type: 'Income Statement',
-    period: 'Q4 2024',
-    submissionDate: '2024-12-31',
-    status: 'Approved'
-  },
-  {
-    id: '2',
-    name: 'Botswana Power Corporation',
-    type: 'Income Statement',
-    period: 'Q4 2024',
-    submissionDate: '2024-12-30',
-    status: 'Pending'
-  },
-  {
-    id: '3',
-    name: 'Air Botswana',
-    type: 'Income Statement',
-    period: 'Q4 2024',
-    submissionDate: '2024-12-29',
-    status: 'Rejected'
-  }
-];
-
 export default function MonitoringPage() {
+  const [statements, setStatements] = useState<Statement[]>([]);
+  const [selectedStatement, setSelectedStatement] = useState<Statement | null>(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchStatements = async () => {
+      try {
+        const response = await fetch('http://74.208.205.44:8084/api/get-list/');
+        const data = await response.json();
+        setStatements(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data.map((item: any) => ({
+            id: item.id.toString(),
+            title: item.title,
+            type: 'Income Statement',
+            year: item.year,
+            submissionDate: item.created_at,
+            status: 'Approved',
+            filePath: item.file_path,
+            fileType: item.file_type,
+            revenue: item.revenue,
+            expenses: item.expenses,
+            tax: item.tax,
+            grossProfit: item.gross_profit,
+            netProfit: item.net_profit,
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching statements:', error);
+      }
+    };
+
+    fetchStatements();
+  }, []);
+
+  const handleViewStatement = (statement: Statement) => {
+    setSelectedStatement(statement);
+    setOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleDownloadFile = (filePath: string, fileType: string) => {
+    window.open(`http://74.208.205.44:8084/api/documents/${filePath}/download`, '_blank');
+  };
+
   return (
     <div>
       <Tabs defaultValue="income" className="space-y-4">
@@ -76,14 +104,14 @@ export default function MonitoringPage() {
               <span className="sm:hidden">Alerts</span>
             </TabsTrigger>
           </TabsList>
-          
+
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <Button size="sm" variant="outline" className="h-8 gap-2 flex-1 sm:flex-initial">
-                <Download className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Export</span>
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Export</span>
             </Button>
             <IncomeStatementForm />
-            </div>
+          </div>
         </div>
 
         <TabsContent value="income">
@@ -98,20 +126,20 @@ export default function MonitoringPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Organization</TableHead>
+                    <TableHead>Title</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Period</TableHead>
+                    <TableHead>Year</TableHead>
                     <TableHead>Submission Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sampleStatements.map((statement) => (
+                  {statements.map((statement) => (
                     <TableRow key={statement.id}>
-                      <TableCell className="font-medium">{statement.name}</TableCell>
+                      <TableCell className="font-medium">{statement.title}</TableCell>
                       <TableCell>{statement.type}</TableCell>
-                      <TableCell>{statement.period}</TableCell>
+                      <TableCell>{statement.year}</TableCell>
                       <TableCell>{statement.submissionDate}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
@@ -125,7 +153,11 @@ export default function MonitoringPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewStatement(statement)}
+                        >
                           View
                         </Button>
                       </TableCell>
@@ -165,6 +197,74 @@ export default function MonitoringPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {selectedStatement && (
+        <Drawer open={open} onOpenChange={setOpen} >
+          <DrawerTrigger />
+          <DrawerContent className="w-full md:w-3/4 lg:w-1/2 bg-background">
+            <DrawerHeader className="bg-muted p-4">
+              <DrawerTitle className="text-2xl font-bold">{selectedStatement.title}</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-medium">Details</h3>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Type</p>
+                    <p>{selectedStatement.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Year</p>
+                    <p>{selectedStatement.year}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Submission Date</p>
+                    <p>{selectedStatement.submissionDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <p>{selectedStatement.status}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h3 className="text-lg font-medium">Financial Information</h3>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Revenue</p>
+                    <p>{selectedStatement.revenue}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Expenses</p>
+                    <p>{selectedStatement.expenses}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tax</p>
+                    <p>{selectedStatement.tax}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Gross Profit</p>
+                    <p>{selectedStatement.grossProfit}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Net Profit</p>
+                    <p>{selectedStatement.netProfit}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => handleDownloadFile(selectedStatement.filePath, selectedStatement.fileType)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 }
