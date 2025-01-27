@@ -78,7 +78,7 @@ export function IncomeStatementForm() {
     e.preventDefault();
 
     const formData = new FormData();
-    formData.append('title', year);
+    formData.append('title', title);
     formData.append('file', file as File);
     formData.append('revenue', totalRevenue.toString());
     formData.append('year', year);
