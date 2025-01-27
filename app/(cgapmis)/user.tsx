@@ -25,7 +25,7 @@ export async function User() {
         >
           <Image
             // src={user?.image ?? '/placeholder-user.jpg'}
-            src={'/placeholder-user.jpg'}
+            src={'/shadcn.png'}
             width={36}
             height={36}
             alt="Avatar"
