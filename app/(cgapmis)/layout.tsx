@@ -8,6 +8,7 @@ import {
   PieChart,
   Settings,
   Target,
+  UserCog,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -91,6 +92,10 @@ function DesktopNav() {
  
         <NavItem href="/performance" label="KPIs">
           <Target className="h-5 w-5" />
+        </NavItem>
+
+        <NavItem href="/users" label="Users">
+          <UserCog className="h-5 w-5" />
         </NavItem>
         
         <NavItem href="/analytics" label="Analytics">
@@ -183,7 +188,14 @@ function MobileNav() {
             <Target className="h-5 w-5" />
             KPIs
           </Link>
-
+          <Link
+            href="/users"
+            className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+          >
+            <UserCog className="h-5 w-5" />
+            Users
+          </Link>
+          
           <Link
             href="/analytics"
             className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"

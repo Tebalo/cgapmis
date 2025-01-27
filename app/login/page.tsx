@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 
 // Hardcoded credentials
 const VALID_CREDENTIALS = {
-  email: 'btebalo@gmail.com',
+  email: 'officer@peepa.com',
   password: 'password@123'
 }
 
