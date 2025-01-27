@@ -95,7 +95,7 @@ export default function MonitoringPage() {
             </TabsTrigger>
             <TabsTrigger value="performance" className="gap-2 px-3 py-2" disabled>
               <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Performance Reports</span>
+              <span className="hidden sm:inline">Statement of Financial Postion</span>
               <span className="sm:hidden">Reports</span>
             </TabsTrigger>
             <TabsTrigger value="alerts" className="gap-2 px-3 py-2" disabled>
