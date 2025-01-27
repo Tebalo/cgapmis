@@ -63,7 +63,7 @@ function DesktopNav() {
         >
           <div className="w-40 h-40 items-center justify-center">
             <Image
-              src="/logo-peepa.png"
+              src="/logo.jpg"
               alt="Logo"
               width={120} 
               height={120} 
